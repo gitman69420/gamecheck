@@ -1,0 +1,22 @@
+package utils
+
+import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+)
+
+func GinUnauthorizedResponse(ctx *gin.Context) {
+	ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+		"message": "Unauthorized",
+		"success": false,
+	})
+}
+
+func GinSuccessResponse(ctx *gin.Context, responseBody any) {
+	ctx.JSON(http.StatusOK, responseBody)
+}
+
+func GinSuccessResponseWithMessage(ctx *gin.Context, message string) {
+	ctx.JSON(http.StatusOK, gin.H{"message": message, "success": true})
+}
