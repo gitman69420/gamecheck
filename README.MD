@@ -20,6 +20,8 @@ Have the following deps installed:
 - Make
 
 ### DB essentials
-Create a 
+Create a database called `app`, create a user role called `app_user` with password `app_password` and grant it access to the `app` database.
+
+Switch to the `app` db, and run the queries in `./postgres-schema.sql`
 
 Run `make dev`
