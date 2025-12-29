@@ -18,7 +18,12 @@ func main() {
 	}
 	logger.Print("Connection to DB: Success")
 
-	h := handlers.NewHander(q)
+	cfg, err := utils.LoadConfig()
+	if err != nil {
+		logger.Fatal(err)
+	}
+
+	h := handlers.NewHander(q, cfg)
 
 	router := gin.Default()
 
