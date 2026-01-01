@@ -61,6 +61,8 @@ func AcceptPaginationParamsMiddleware(limits PaginationParams) gin.HandlerFunc {
 			return
 		}
 
+		// at this point, the value of "page" and "size" won't be 0
+		// it's possible that they both aren't present, in which case both would be 0
 		ctx.Set("page", uint(pageNumber))
 		ctx.Set("size", uint(sizeNumber))
 

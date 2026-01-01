@@ -12,8 +12,8 @@ func GetGamesFromKeywordSearch(r *rawg.Client, keyword string) ([]*rawg.Game, in
 	return GetGamesFromKeywordSearchPaginated(r, keyword, SEARCH_LIMIT, 1)
 }
 
-func GetGamesFromKeywordSearchPaginated(r *rawg.Client, keyword string, limit int, page int) ([]*rawg.Game, int, error) {
-	rawgFilter := rawg.NewGamesFilter().SetPageSize(limit).SetPage(page).SetSearch(keyword)
+func GetGamesFromKeywordSearchPaginated(r *rawg.Client, keyword string, limit uint, page uint) ([]*rawg.Game, int, error) {
+	rawgFilter := rawg.NewGamesFilter().SetPageSize(int(limit)).SetPage(int(page)).SetSearch(keyword)
 
 	return r.GetGames(context.Background(), rawgFilter)
 }
