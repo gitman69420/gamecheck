@@ -5,13 +5,13 @@ import (
 	"os"
 )
 
-type Config struct {
+type EnvConfig struct {
 	ExternalAPISecret string
 }
 
-func LoadConfig() (*Config, error) {
+func LoadEnvConfig() (*EnvConfig, error) {
 
-	cfg := &Config{
+	cfg := &EnvConfig{
 		ExternalAPISecret: os.Getenv("RAWG_API_SECRET"),
 	}
 
