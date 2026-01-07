@@ -1,0 +1,97 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: dev-postgres
+    environment:
+      POSTGRES_USER: ${DB_USER:-app_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-app_password}
+      POSTGRES_DB: ${DB_NAME:-app}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-app_user} -d  ${DB_NAME:-app}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  valkey:
+    image: valkey/valkey:8.1-alpine
+    container_name: dev-valkey
+    ports:
+      - "6379:6379"
+    volumes:
+      - valkey_data:/data
+    command: valkey-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - app-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: dev-app
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+      - /app/tmp # air tmp directory
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-app_user}
+      - DB_PASSWORD=${DB_PASSWORD:-app_password}
+      - DB_NAME=${DB_NAME:-app}
+      - VALKEY_HOST=valkey
+      - VALKEY_PORT=6379
+      - ENV=development
+    env_file:
+      - .env.local
+    depends_on:
+      postgres:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  atlas:
+    image: arigaio/atlas:latest
+    container_name: dev-atlas
+    volumes:
+      - ./migrations:/migrations
+      - ./postgres-schema.sql:/postgres-schema.sql
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app-network
+      - dev-network
+    profiles:
+      - tools
+  
+  atlas-devdb:
+    image: postgres:18-alpine
+    container_name: dev-atlas-devdb
+    environment:
+      POSTGRES_PASSWORD: mysecretpassword
+    networks:
+      - dev-network
+
+volumes:
+  postgres_data:
+  valkey_data:
+
+networks:
+  app-network:
+    driver: bridge
+  dev-network:
+    driver: bridge # related issue: https://atlasgo.io/guides/atlas-in-docker#docker-executable-file-not-found-in-path

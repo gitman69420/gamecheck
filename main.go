@@ -11,18 +11,19 @@ import (
 )
 
 func main() {
-
 	logger := log.Default()
-	q, err := utils.InitSqlcQueries()
-	if err != nil {
-		logger.Fatal(err)
-	}
-	logger.Print("Connection to DB: Success")
 
+	// load env variables
 	cfg, err := utils.LoadEnvConfig()
 	if err != nil {
 		logger.Fatal(err)
 	}
+
+	q, err := utils.InitSqlcQueries(&cfg.DbConfig)
+	if err != nil {
+		logger.Fatal(err)
+	}
+	logger.Print("Connection to DB: Success")
 
 	rawgClient := rawg.NewClient(cfg.ExternalAPISecret)
 
