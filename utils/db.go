@@ -10,8 +10,16 @@ import (
 
 var q *db.Queries
 
-func InitSqlcQueries() (*db.Queries, error) {
-	conn, err := pgx.Connect(context.Background(), "host=localhost port=5432 dbname=app user=app_user password=app_password")
+func InitSqlcQueries(dbConfig *DbConfig) (*db.Queries, error) {
+	connString := fmt.Sprintf(
+		"host=%s port=%s dbname=%s user=%s password=%s",
+		dbConfig.DbHost,
+		dbConfig.DbPort,
+		dbConfig.DbName,
+		dbConfig.DbUser,
+		dbConfig.DbPassword,
+	)
+	conn, err := pgx.Connect(context.Background(), connString)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to connect to the db with error: %s", err)
 	}
