@@ -6,10 +6,11 @@ import (
 	"github.com/dimuska139/rawg-sdk-go/v3"
 )
 
-const SEARCH_LIMIT = 20
+const DEFAULT_PAGE_SIZE = 20
+const DEFAULT_PAGE = 1
 
 func GetGamesFromKeywordSearch(r *rawg.Client, keyword string) ([]*rawg.Game, int, error) {
-	return GetGamesFromKeywordSearchPaginated(r, keyword, SEARCH_LIMIT, 1)
+	return GetGamesFromKeywordSearchPaginated(r, keyword, DEFAULT_PAGE_SIZE, DEFAULT_PAGE)
 }
 
 func GetGamesFromKeywordSearchPaginated(r *rawg.Client, keyword string, limit uint, page uint) ([]*rawg.Game, int, error) {

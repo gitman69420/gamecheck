@@ -13,7 +13,7 @@ func GinUnauthorizedResponse(ctx *gin.Context) {
 	})
 }
 
-func GinBadResponse(ctx *gin.Context, message string) {
+func GinBadRequest(ctx *gin.Context, message string) {
 	ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 		"message": message,
 		"success": false,

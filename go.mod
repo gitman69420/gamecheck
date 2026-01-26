@@ -6,6 +6,7 @@ require (
 	github.com/dimuska139/rawg-sdk-go/v3 v3.0.0
 	github.com/gin-gonic/gin v1.11.0
 	github.com/jackc/pgx/v5 v5.7.6
+	github.com/valkey-io/valkey-go v1.0.70
 )
 
 require (

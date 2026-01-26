@@ -1,6 +1,7 @@
 package main
 
 import (
+	"gamecheck-backend/cacher"
 	"gamecheck-backend/external/rawg"
 	"gamecheck-backend/internal/handlers"
 	"gamecheck-backend/internal/middlewares"
@@ -19,6 +20,11 @@ func main() {
 		logger.Fatal(err)
 	}
 
+	vkClient, err := cacher.NewClient(cfg.VkAddress, cfg.VkPassword)
+	if err != nil {
+		logger.Fatal(err)
+	}
+
 	q, err := utils.InitSqlcQueries(&cfg.DbConfig)
 	if err != nil {
 		logger.Fatal(err)
@@ -27,7 +33,7 @@ func main() {
 
 	rawgClient := rawg.NewClient(cfg.ExternalAPISecret)
 
-	h := handlers.NewHander(q, rawgClient)
+	h := handlers.NewHander(q, rawgClient, vkClient, logger)
 
 	router := gin.Default()
 
