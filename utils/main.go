@@ -12,9 +12,13 @@ func CreateListResponse[T any](data []T) ListResponse[T] {
 	}
 }
 
-// GetPaginationStartIndex returns the starting index, provided the page number and page size.
+// GetPaginationStartAndEndIndices returns the starting and ending index, provided the page number and page size.
 //
-// The returned uint is calculated with the formula: (pageNumber-1)*pageSize
-func GetPaginationStartIndex(pageNumber uint, pageSize uint) uint {
-	return (pageNumber - 1) * pageSize
+// The start index uint is calculated using the formula: (pageNumber - 1) * pageSize
+//
+// The end index uint is calculated using the formula: startIndex + pageSize
+func GetPaginationStartAndEndIndices(pageNumber uint, pageSize uint) (uint, uint) {
+	startIndex := (pageNumber - 1) * pageSize
+	endIndex := startIndex + pageSize
+	return startIndex, endIndex
 }

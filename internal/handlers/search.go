@@ -19,8 +19,11 @@ import (
 func (h *Handler) getCurrentValueOfSearchMaxIndex(ctx *gin.Context, keyword string) (int, error) {
 	searchMaxIndexCacheKey := cacher.CacheKeyForSearchMaxIndex(keyword)
 
-	if searchMaximumIndex := ctx.GetInt(searchMaxIndexCacheKey); searchMaximumIndex != 0 {
-		return searchMaximumIndex, nil
+	searchMaximumIndexValue, searchMaximumIndexExists := ctx.Get(searchMaxIndexCacheKey)
+	if searchMaximumIndexExists {
+		if searchMaximumIndex, ok := searchMaximumIndexValue.(int); ok {
+			return searchMaximumIndex, nil
+		}
 	}
 
 	getSearchMaxIndexCmd := h.c.B().Get().Key(searchMaxIndexCacheKey).Build()
@@ -55,9 +58,27 @@ func (h *Handler) setCurrentValueOfSearchMaxIndex(ctx *gin.Context, keyword stri
 	return nil
 }
 
+// shouldQueryRAWGSearch return a bool to indicate if we should make a RAWG API call
+func (h *Handler) shouldQueryRAWGSearch(ctx *gin.Context, keyword string, pageNumber uint, pageSize uint) (bool, error) {
+	startIndex, _ := utils.GetPaginationStartAndEndIndices(pageNumber, pageSize)
+
+	searchMaxIndex, err := h.getCurrentValueOfSearchMaxIndex(ctx, keyword)
+
+	// if it's not set, we don't care
+	if valkey.IsValkeyNil(err) {
+		return true, nil
+	}
+
+	if err == nil {
+		// we're checking if we're targetting an out-of-bounds search
+		return int(startIndex) < searchMaxIndex, nil
+	}
+
+	return true, err
+}
+
 func (h *Handler) getGamesSearchResultFromCache(ctx *gin.Context, keyword string, pageNumber uint, pageSize uint) ([]*rawgSdk.Game, error) {
-	startIndex := utils.GetPaginationStartIndex(pageNumber, pageSize)
-	endIndex := startIndex + pageSize
+	startIndex, endIndex := utils.GetPaginationStartAndEndIndices(pageNumber, pageSize)
 
 	keywordCacheKey := cacher.CacheKeyForSearch(keyword)
 
@@ -110,7 +131,8 @@ func (h *Handler) getGamesSearchResultFromCache(ctx *gin.Context, keyword string
 
 // updateGameSearchMaxIndex updates the Search Maximum Index based on the pagination parameters and the result set
 func (h *Handler) updateGameSearchMaxIndex(ctx *gin.Context, resultsCount int, keyword string, pageNumber uint, pageSize uint) {
-	startIndex := (int)(utils.GetPaginationStartIndex(pageNumber, pageSize))
+	startIndexUint, _ := utils.GetPaginationStartAndEndIndices(pageNumber, pageSize)
+	startIndex := int(startIndexUint)
 	searchMaxIndex, err := h.getCurrentValueOfSearchMaxIndex(ctx, keyword)
 
 	isSearchMaxIndexAlreadySet := !valkey.IsValkeyNil(err)
@@ -178,7 +200,7 @@ func (h *Handler) saveGamesSearchResultToCache(ctx *gin.Context, results []*rawg
 		return nil
 	})
 
-	startIndex := utils.GetPaginationStartIndex(pageNumber, pageSize)
+	startIndex, _ := utils.GetPaginationStartAndEndIndices(pageNumber, pageSize)
 
 	// save the keywords search to the cache
 	keywordCacheKey := cacher.CacheKeyForSearch(keyword)
@@ -232,6 +254,18 @@ func (h *Handler) SearchGamesHandler(ctx *gin.Context) {
 	var res []*rawgSdk.Game
 	var err error
 
+	shouldMakeRAWGCall, err := h.shouldQueryRAWGSearch(ctx, search, page, size)
+
+	if err != nil {
+		// this error only comes up on failing to fetch the Search Maximum Index from cache
+		// we can afford to do nothing, if something is seriously wrong with the cache, it will be handled afterwards
+	}
+
+	if !shouldMakeRAWGCall {
+		utils.GinNotFound(ctx, utils.CreateListResponse([]*rawgSdk.Game{}))
+		return
+	}
+
 	games, err := h.getGamesSearchResultFromCache(ctx, search, page, size)
 	if err == nil {
 		// successful read from cache
@@ -246,11 +280,25 @@ func (h *Handler) SearchGamesHandler(ctx *gin.Context) {
 
 	if err != nil {
 		if err, ok := err.(*rawgSdk.RawgError); ok {
-			errorMsg := fmt.Errorf("Error from RAWG: %s", err.Body)
+			// if we get a 404 error from RAWG
+			if err.HttpCode == http.StatusNotFound {
+				utils.GinNotFound(ctx, utils.CreateListResponse([]*rawgSdk.Game{}))
+
+				// we can update the Search Maximum Index
+				defer func() {
+					go h.updateGameSearchMaxIndex(ctx, 0, search, page, size)
+				}()
+
+				return
+			}
+
 			ctx.AbortWithStatusJSON(err.HttpCode, gin.H{
-				"message": errorMsg,
+				"message": "Error from RAWG",
+				"error":   err.Body,
 				"success": false,
 			})
+
+			h.logger.Printf("Error from RAWG: %s\n", err)
 			return
 		}
 

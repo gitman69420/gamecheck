@@ -20,6 +20,10 @@ func GinBadRequest(ctx *gin.Context, message string) {
 	})
 }
 
+func GinNotFound(ctx *gin.Context, responseBody any) {
+	ctx.AbortWithStatusJSON(http.StatusNotFound, responseBody)
+}
+
 func GinSuccessResponse(ctx *gin.Context, responseBody any) {
 	ctx.JSON(http.StatusOK, responseBody)
 }
