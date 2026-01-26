@@ -11,3 +11,10 @@ func CreateListResponse[T any](data []T) ListResponse[T] {
 		Count: len(data),
 	}
 }
+
+// GetPaginationStartIndex returns the starting index, provided the page number and page size.
+//
+// The returned uint is calculated with the formula: (pageNumber-1)*pageSize
+func GetPaginationStartIndex(pageNumber uint, pageSize uint) uint {
+	return (pageNumber - 1) * pageSize
+}

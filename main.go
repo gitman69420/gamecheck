@@ -24,6 +24,7 @@ func main() {
 	if err != nil {
 		logger.Fatal(err)
 	}
+	logger.Print("Connection to Valkey: Success")
 
 	q, err := utils.InitSqlcQueries(&cfg.DbConfig)
 	if err != nil {
