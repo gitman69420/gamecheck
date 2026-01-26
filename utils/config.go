@@ -2,7 +2,9 @@ package utils
 
 import (
 	"errors"
+	"fmt"
 	"os"
+	"strings"
 )
 
 type DbConfig struct {
@@ -13,16 +15,15 @@ type DbConfig struct {
 	DbPort     string
 }
 
-// // TODO: Valkey store
-// type ValkeyConfig struct {
-// 	VkAddress string
-//	VkPassword string
-// }
+type ValkeyConfig struct {
+	VkAddress  string
+	VkPassword string
+}
 
 type EnvConfig struct {
 	ExternalAPISecret string
 	DbConfig
-	// ValkeyConfig
+	ValkeyConfig
 }
 
 func LoadEnvConfig() (*EnvConfig, error) {
@@ -36,10 +37,10 @@ func LoadEnvConfig() (*EnvConfig, error) {
 			DbUser:     os.Getenv("DB_USER"),
 			DbPassword: os.Getenv("DB_PASSWORD"),
 		},
-		// ValkeyConfig: ValkeyConfig{
-		// 	VkAddress: fmt.Sprintf("%s:%s", os.Getenv("VALKEY_HOST"), os.Getenv("VALKEY_PORT")),
-		//	VkPassword: os.Getenv("VALKEY_PASSWORD"),
-		// },
+		ValkeyConfig: ValkeyConfig{
+			VkAddress:  fmt.Sprintf("%s:%s", os.Getenv("VALKEY_HOST"), os.Getenv("VALKEY_PORT")),
+			VkPassword: os.Getenv("VALKEY_PASSWORD"),
+		},
 	}
 
 	checks := []bool{
@@ -49,8 +50,8 @@ func LoadEnvConfig() (*EnvConfig, error) {
 		cfg.DbConfig.DbName == "",
 		cfg.DbConfig.DbUser == "",
 		cfg.DbConfig.DbPassword == "",
-		// strings.HasPrefix(cfg.ValkeyConfig.VkAddress, ":"),
-		// strings.HasSuffix(cfg.ValkeyConfig.VkAddress, ":"),
+		strings.HasPrefix(cfg.ValkeyConfig.VkAddress, ":"),
+		strings.HasSuffix(cfg.ValkeyConfig.VkAddress, ":"),
 	}
 
 	for _, check := range checks {

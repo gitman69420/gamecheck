@@ -34,7 +34,7 @@ func AcceptPaginationParamsMiddleware(limits PaginationParams) gin.HandlerFunc {
 		size, sizeExists := ctx.GetQuery("size")
 
 		if pageExists != sizeExists { // if either one param is passed
-			utils.GinBadResponse(ctx, "Page and Size params are both required or both omitted")
+			utils.GinBadRequest(ctx, "Page and Size params are both required or both omitted")
 			return
 		}
 
@@ -47,17 +47,17 @@ func AcceptPaginationParamsMiddleware(limits PaginationParams) gin.HandlerFunc {
 		sizeNumber, err := strconv.ParseUint(size, 10, 16)
 
 		if err != nil || pageNumber == 0 || sizeNumber == 0 {
-			utils.GinBadResponse(ctx, "Invalid values for page or size params")
+			utils.GinBadRequest(ctx, "Invalid values for page or size params")
 			return
 		}
 
 		if uint(pageNumber) > pageLimit {
-			utils.GinBadResponse(ctx, fmt.Sprintf("Page exceeds limit of %d", pageLimit))
+			utils.GinBadRequest(ctx, fmt.Sprintf("Page exceeds limit of %d", pageLimit))
 			return
 		}
 
 		if uint(sizeNumber) > sizeLimit {
-			utils.GinBadResponse(ctx, fmt.Sprintf("Size exceeds limit of %d", sizeLimit))
+			utils.GinBadRequest(ctx, fmt.Sprintf("Size exceeds limit of %d", sizeLimit))
 			return
 		}
 
