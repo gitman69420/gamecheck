@@ -2,10 +2,10 @@ package main
 
 import (
 	"gamecheck-backend/cacher"
+	"gamecheck-backend/config"
 	"gamecheck-backend/external/rawg"
 	"gamecheck-backend/internal/handlers"
 	"gamecheck-backend/internal/middlewares"
-	"gamecheck-backend/utils"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -15,7 +15,7 @@ func main() {
 	logger := log.Default()
 
 	// load env variables
-	cfg, err := utils.LoadEnvConfig()
+	cfg, err := config.LoadEnvConfig()
 	if err != nil {
 		logger.Fatal(err)
 	}
@@ -26,7 +26,7 @@ func main() {
 	}
 	logger.Print("Connection to Valkey: Success")
 
-	q, err := utils.InitSqlcQueries(&cfg.DbConfig)
+	q, err := config.InitSqlcQueries(&cfg.DbConfig)
 	if err != nil {
 		logger.Fatal(err)
 	}
@@ -38,11 +38,14 @@ func main() {
 
 	router := gin.Default()
 
+	authRouter := router.Group("/auth")
 	gamesRouter := router.Group("/games")
 	searchRouter := router.Group("/search")
 
 	middlewares.InitiateMiddlewares(gamesRouter)
 	middlewares.InitiateMiddlewares(searchRouter)
+
+	authRouter.POST("create-session", h.CreateAuthSessionHandler) // POST /auth/create-session
 
 	gamesRouter.GET("", h.ListGamesHandler)      // GET /games
 	gamesRouter.PUT(":gameId", h.PutGameHandler) // PUT /games/:gameId
