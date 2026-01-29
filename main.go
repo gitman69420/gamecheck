@@ -41,9 +41,11 @@ func main() {
 	authRouter := router.Group("/auth")
 	gamesRouter := router.Group("/games")
 	searchRouter := router.Group("/search")
+	userRouter := router.Group("/user")
 
 	middlewares.InitiateMiddlewares(gamesRouter)
 	middlewares.InitiateMiddlewares(searchRouter)
+	middlewares.InitiateMiddlewares(userRouter)
 
 	authRouter.POST("create-session", h.CreateAuthSessionHandler) // POST /auth/create-session
 
@@ -55,6 +57,8 @@ func main() {
 		middlewares.AcceptPaginationParamsMiddleware(middlewares.PaginationParams{}),
 		h.SearchGamesHandler,
 	)
+
+	userRouter.GET("me", h.GetMyInfoHandler) // GET /user/me
 
 	router.Run()
 }

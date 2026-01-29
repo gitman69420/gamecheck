@@ -6,6 +6,9 @@ WHERE user_id = $1;
 SELECT * FROM user_games
 WHERE user_id = $1 AND is_hidden = FALSE AND is_private = FALSE;
 
+-- name: GetUserInfo :one
+SELECT * FROM users WHERE id = $1;
+
 -- name: GetUserPrivateGames :many
 SELECT * FROM user_games
 WHERE user_id = $1 AND is_hidden = FALSE;
