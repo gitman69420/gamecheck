@@ -13,6 +13,13 @@ func GinUnauthorizedResponse(ctx *gin.Context) {
 	})
 }
 
+func GinUnauthorizedResponseWithMessage(ctx *gin.Context, message string) {
+	ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+		"message": message,
+		"success": false,
+	})
+}
+
 func GinBadRequest(ctx *gin.Context, message string) {
 	ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 		"message": message,
@@ -22,6 +29,10 @@ func GinBadRequest(ctx *gin.Context, message string) {
 
 func GinNotFound(ctx *gin.Context, responseBody any) {
 	ctx.AbortWithStatusJSON(http.StatusNotFound, responseBody)
+}
+
+func GinInternalServerError(ctx *gin.Context) {
+	ctx.AbortWithStatus(http.StatusInternalServerError)
 }
 
 func GinSuccessResponse(ctx *gin.Context, responseBody any) {
