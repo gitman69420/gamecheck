@@ -41,7 +41,8 @@ CREATE TABLE games (
     name VARCHAR(255) NOT NULL,
     released DATE,
     background_image TEXT,
-    rating DECIMAL(3, 2)
+    rating DECIMAL(3, 2),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Foreign key reference in `user_games`.`game_id`

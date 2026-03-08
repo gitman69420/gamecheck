@@ -1,6 +1,7 @@
-h1:y5IGVUq2UtMEmNSoi5RtJSWBazNIKVElUHC6BFbq3RU=
+h1:khV37DdaIDxEwi7hFXciD2L77rwJJhEnE0aZ1sF1vf0=
 20260101161609_initial_schema.sql h1:nzG85iMOE0EvFIs2wS+ULaSEra90ffzcJ6vnO4k67YU=
 20260114081213_status_enum.sql h1:Rc9/KPXikceBWqB5+1gQhH+n6yivToGfFNMtACJKMX0=
 20260114103257_users_table.sql h1:IsvKh6kC3nQzIR0TAd0wwhz/vYMHL/2zRNZRLKLqpz0=
 20260114105940_user_games_userid_fk_created.sql h1:nBSd1KN5J8HW7Z6Gxxy0ejnWZXGwUSd2XNOc39S8OcQ=
 20260114120141_games_table.sql h1:uLAqi9ypAagUSIxtyycsMgo5H4lCS4+lIPLdpwgHUwA=
+20260131110034_users_updated_at_col.sql h1:C1YdSM+PDdNTKp44ZcNLkuc71MTKjUwVWvwD7jr0qH8=
