@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"gamecheck-backend/cacher"
+	"gamecheck-backend/db"
 	"gamecheck-backend/external/rawg"
 	"gamecheck-backend/utils"
 	"net/http"
@@ -225,6 +227,32 @@ func (h *Handler) saveGamesSearchResultToCache(ctx *gin.Context, results []*rawg
 	return nil
 }
 
+func (h *Handler) saveGamesSearchResultToDatabase(_ *gin.Context, results []*rawgSdk.Game) error {
+	// convert everything to the db.Game type
+	dbRecords := []db.UpsertGamesParams{}
+
+	for i := range results {
+		singleRecord, err := utils.ConvertRAWGGameTypeToRecordGameType(results[i])
+		if err != nil {
+			return err
+		}
+		dbRecords = append(dbRecords, *singleRecord)
+	}
+
+	// do an upsert query with this data
+	batchRes := h.q.UpsertGames(context.Background(), dbRecords)
+
+	batchRes.Exec(func(idx int, err error) {
+		if err != nil {
+			h.logger.Printf("Error in batched query %d: %s\n", idx, err)
+		}
+	})
+
+	err := batchRes.Close()
+
+	return err
+}
+
 func (h *Handler) SearchGamesHandler(ctx *gin.Context) {
 
 	searchQuery, searchExists := ctx.GetQuery("search")
@@ -269,6 +297,14 @@ func (h *Handler) SearchGamesHandler(ctx *gin.Context) {
 	games, err := h.getGamesSearchResultFromCache(ctx, search, page, size)
 	if err == nil {
 		// successful read from cache
+
+		// upsert into db
+		defer func() {
+			if h.saveGamesSearchResultToDatabase(ctx, games) != nil {
+				h.logger.Panicf("An error occured: %s", err)
+			}
+		}()
+
 		responseData := utils.CreateListResponse(games)
 		utils.GinSuccessResponse(ctx, responseData)
 		return
@@ -310,6 +346,12 @@ func (h *Handler) SearchGamesHandler(ctx *gin.Context) {
 	}
 
 	defer func() {
+		// upsert into db
+		go func() {
+			if h.saveGamesSearchResultToDatabase(ctx, res) != nil {
+				h.logger.Panicf("An error occured: %s", err)
+			}
+		}()
 		go h.saveGamesSearchResultToCache(ctx, res, search, page, size)
 	}()
 

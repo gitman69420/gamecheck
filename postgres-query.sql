@@ -34,3 +34,25 @@ SET
         ELSE users.personaname
     END
 RETURNING id;
+
+-- name: UpsertGames :batchexec
+INSERT INTO games (
+    id,
+    name,
+    released,
+    background_image,
+    rating
+)
+VALUES (
+    $1, $2, $3, $4, $5
+)
+ON CONFLICT (id)
+DO UPDATE
+SET
+    name             = EXCLUDED.name,
+    released         = EXCLUDED.released,
+    background_image = EXCLUDED.background_image,
+    rating           = EXCLUDED.rating,
+    updated_at       = CURRENT_TIMESTAMP
+WHERE
+    games.updated_at < CURRENT_TIMESTAMP - INTERVAL '7 days';

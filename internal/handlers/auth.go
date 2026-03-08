@@ -14,7 +14,7 @@ type CreateAuthSessionResponse struct {
 	ExpiresIn   time.Time `json:"expires_in"`
 }
 
-const TOKEN_EXPIRY_TIME time.Duration = 45 * time.Minute
+const TOKEN_EXPIRY_TIME time.Duration = 2 * time.Hour
 
 // CreateAuthSessionHandler creates a session with the provided Steam details
 //

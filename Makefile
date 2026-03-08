@@ -17,7 +17,13 @@ dev: ## Start development environment with hot reload
 	docker-compose -f docker-compose.dev.yaml up --build
 
 dev-down: ## Stop development environment
-	docker-compose -f docker-compose.dev.yaml down
+@RUNNING=$$(docker-compose -f docker-compose.dev.yaml ps --status running -q 2>/dev/null); \
+if [ -n "$$RUNNING" ]; then \
+	echo "Stopping containers..."; \
+	docker-compose -f docker-compose.dev.yaml down; \
+else \
+	echo "No running containers, skipping down command"; \
+fi
 
 dev-logs: ## View development logs
 	docker-compose -f docker-compose.dev.yaml logs -f
